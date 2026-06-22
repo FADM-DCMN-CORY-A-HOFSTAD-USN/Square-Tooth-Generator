@@ -1,0 +1,23 @@
+{
+  "hydro": {
+    "fluid_density_rho": 1000.0,
+    "bending_shock_kb": 1.5,
+    "torsional_shock_kt": 1.5,
+    "allowable_shear_mpa": 220.0,
+    "target_efficiency": 0.85
+  },
+  "wind": {
+    "fluid_density_rho": 1.225,
+    "bending_shock_kb": 2.5,
+    "torsional_shock_kt": 1.2,
+    "allowable_shear_mpa": 300.0,
+    "target_efficiency": 0.45
+  },
+  "combustion_fuel": {
+    "fluid_density_rho": 1.2,
+    "bending_shock_kb": 1.2,
+    "torsional_shock_kt": 2.5,
+    "allowable_shear_mpa": 220.0,
+    "target_efficiency": 0.35
+  }
+}
