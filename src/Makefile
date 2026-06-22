@@ -1,6 +1,6 @@
 # =========================================================================
 # SQUARE-TOOTH GENERATOR HARDWARE DEPLOYMENT PIPELINE
-# Automated Makefile System Infrastructure for Firmware & Driver Modules
+# Automated Makefile System Infrastructure with Integrated Gerber/CAD Links
 # =========================================================================
 
 # 1. Compiler and Linker Configuration Matrix
@@ -9,8 +9,6 @@ AR       = ar
 ARFLAGS  = rcs
 
 # 2. Performance and Optimization Flags
-# -O3 maximizes loop optimizations for raw speed in turbine real-time adjustments
-# -Wall -Wextra enforce rigorous compiler warning protocols
 CFLAGS   = -Wall -Wextra -O3 -std=c99 -fPIC
 INCLUDES = -I.
 
@@ -22,29 +20,52 @@ TARGET_EXE = mcp4725_driver
 SRCS = dac_mcp4725.c
 OBJS = $(SRCS:.c=.o)
 
-# 5. Default Primary Recipe Target
+# 5. Native OS Python Environment Selector for KiCad Hook Execution
+# Handles routing through native KiCad command lines where necessary
+PYTHON   = python3
+
+# =========================================================================
+# Execution Recipes & Build Matrix
+# =========================================================================
+
+# Default Primary Recipe Target
 all: $(TARGET_LIB) $(TARGET_EXE)
 	@echo "[DEPLOYMENT]: Automated firmware compile and binding processes successfully finalized."
 
-# 6. Static Library Build Loop (For clean link abstraction into telemetry systems)
+# Static Library Build Loop
 $(TARGET_LIB): $(OBJS)
 	@echo "[ARCHIVER]: Constructing unified static hardware library binary: $@..."
 	@$(AR) $(ARFLAGS) $@ $^
 
-# 7. Executable Build Loop (For direct hardware testing on system buses)
+# Executable Build Loop
 $(TARGET_EXE): dac_mcp4725.o
 	@echo "[LINKER]: Compiling monolithic device executable package: $@..."
 	@$(CC) $(CFLAGS) $^ -o $@
 
-# 8. C Object Compilation Engine (Implicit rule template tracking changes)
+# C Object Compilation Engine
 %.o: %.c dac_mcp4725.h
 	@echo "[COMPILER]: Synthesizing machine object code from source code file: $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# 9. Repository Purge Protocol (For resetting localized build trees)
+# =========================================================================
+# ADDED MANUFACTURING CAD/PCB EXTENSION RECIPES
+# =========================================================================
+
+# The Unified Hardware Fabrication Master Command Loop
+fab: all
+	@echo "\n[FAB-MATRIX]: Initiating full programmatic hardware layout revision cycle..."
+	@echo "[FAB-MATRIX]: Instantiating KiCad ATX PCB board bounds and 16-state guard rings..."
+	@$(PYTHON) build_hex_board.py
+	@echo "\n[FAB-MATRIX]: Extracting manufacturing industrial Gerber and Excellon CNC drill patterns..."
+	@$(PYTHON) generate_gerbers.py
+	@echo "\n[SUCCESS]: Unified firmware binaries and physical fabrication packages are fully generated and synchronized."
+
+# Repository Purge Protocol (Updated to wipe generated output and manufacturing trees)
 clean:
 	@echo "[HOUSEKEEPING]: Removing generated object modules and static library binaries..."
 	@rm -f $(OBJS) $(TARGET_LIB) $(TARGET_EXE)
+	@echo "[HOUSEKEEPING]: Clearing generated PCB outputs and manufacturing data payloads..."
+	@rm -rf outputs/hex_telemetry_atx.kicad_pcb outputs/manufacturing/
 
-# 10. Explicit Target Verification Enforcement
-.PHONY: all clean
+# Explicit Target Verification Enforcement
+.PHONY: all clean fab
