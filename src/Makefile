@@ -3,6 +3,18 @@
 # Automated Makefile System Infrastructure with Integrated Gerber/CAD Links
 # =========================================================================
 
+# Update target binaries array inside src/Makefile:
+TARGET_EXE = mcp4725_driver sys_init sys_shutdown
+
+# Add the final linking and compilation recipes to the bottom:
+sys_shutdown: sys_shutdown.o dac_mcp4725.o
+	@echo "[LINKER]: Compiling system shutdown safety module: $@..."
+	@$(CC) $(CFLAGS) $^ -o $@
+
+sys_shutdown.o: sys_shutdown.c dac_mcp4725.h
+	@echo "[COMPILER]: Synthesizing machine object code from shutdown source: $<..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
 # 1. Compiler and Linker Configuration Matrix
 CC       = gcc
 AR       = ar
