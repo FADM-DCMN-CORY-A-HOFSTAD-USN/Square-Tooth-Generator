@@ -5,6 +5,16 @@
  * Targets 16 distinct voltage steps within a precise 0.0V to 1.0V window.
  * =========================================================================
  */
+// In src/dac_mcp4725.c:
+#include "dac_mcp4725.h"
+
+uint16_t calculate_12bit_dac_value(const MCP4725_Device *device, char hex_token) {
+    // Implementation code updated to use device->reference_voltage_v and device->target_voltage_max_v
+}
+
+DAC_Status write_mcp4725_step(const MCP4725_Device *device, char hex_token) {
+    // Implementation code updated to use device->i2c_bus_fd and device->device_address
+}
 
 #include <stdio.h>
 #include <stdint.h>
