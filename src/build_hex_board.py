@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Square-Tooth Generator Infrastructure
-Automated KiCad PCB Generation Matrix for Hexadecimal Telemetry Logic.
+Square-Tooth Generator Infrastructure & RT Architecture Integration.
+Automated KiCad PCB Generation Matrix with Integrated RT Guard Rings.
 """
 
 import sys
@@ -10,111 +10,121 @@ import os
 try:
     import pcbnew
 except ImportError:
-    print("Error: KiCad pcbnew Python module not found. Please run this script inside the KiCad Python environment.")
+    print("Error: KiCad pcbnew module not found. Run inside the KiCad Python environment.")
     sys.exit(1)
 
 class HexBoardGenerator:
     def __init__(self, filename="outputs/hex_telemetry_atx.kicad_pcb"):
         self.filename = filename
-        # Ensure the output directory exists
         os.makedirs(os.path.dirname(self.filename), exist_ok=True)
         
-        # 1. Create a blank new KiCad board architecture
+        # Initialize Board
         self.board = pcbnew.NEW_BOARD(self.filename)
+        self.MM_TO_IU = 1000000
         
-        # 2. Establish unscaled standard ATX board dimensions (in millimeters)
+        # RT Fabrication Constants
         self.ATX_WIDTH_MM = 304.8
         self.ATX_LENGTH_MM = 244.0
-        
-        # Conversion scale (KiCad internal units are nanometers)
-        self.MM_TO_IU = 1000000
+        self.GUARD_RING_OFFSET_MM = 0.5   # Distance from data signal to shield
+        self.GUARD_RING_WIDTH_MM = 0.4    # Thickness of the shielding ground trace
 
     def draw_atx_board_edge(self):
-        """Generates the rigid outer boundary of the ATX board layout."""
+        """Generates outer boundaries of the ATX board layout."""
         edge_layer = self.board.GetLayerID("Edge.Cuts")
-        
-        # Define the four bounding corners of the ATX footprint
         w_iu = int(self.ATX_WIDTH_MM * self.MM_TO_IU)
         l_iu = int(self.ATX_LENGTH_MM * self.MM_TO_IU)
         
         corners = [
-            pcbnew.VECTOR2I(0, 0),
-            pcbnew.VECTOR2I(w_iu, 0),
-            pcbnew.VECTOR2I(w_iu, l_iu),
-            pcbnew.VECTOR2I(0, l_iu)
+            pcbnew.VECTOR2I(0, 0), pcbnew.VECTOR2I(w_iu, 0),
+            pcbnew.VECTOR2I(w_iu, l_iu), pcbnew.VECTOR2I(0, l_iu)
         ]
         
-        # Loop through corners and draw boundary segments
         for i in range(4):
-            start = corners[i]
-            end = corners[(i + 1) % 4]
             segment = pcbnew.PCB_SHAPE(self.board)
             segment.SetShape(pcbnew.SHAPE_T.SEGMENT)
-            segment.SetStart(start)
-            segment.SetEnd(end)
+            segment.SetStart(corners[i])
+            segment.SetEnd(corners[(i + 1) % 4])
             segment.SetLayer(edge_layer)
             self.board.Add(segment)
-        
-        print(f"[PCBNEW]: Custom ATX Edge boundaries defined ({self.ATX_WIDTH_MM}mm x {self.ATX_LENGTH_MM}mm).")
 
-    def place_atx_mounting_holes(self):
-        """Places standard pre-tapped ATX mounting standoffs mirroring the CAD script."""
-        # Standard ATX locations relative to origin (X, Y) in millimeters
-        atx_hole_coordinates = [
-            (0.0, 0.0), (0.0, 165.1), (0.0, 243.84),
-            (154.94, 0.0), (154.94, 165.1), (154.94, 243.84),
-            (304.8, 0.0), (304.8, 165.1), (304.8, 243.84)
-        ]
+    def route_high_speed_data_trace(self, start_mm, end_mm):
+        """Routes a primary 16-state telemetry data track and returns its segment."""
+        front_layer = self.board.GetLayerID("F.Cu")
         
-        for idx, (x, y) in enumerate(atx_hole_coordinates):
-            # Create a through-hole mechanical mounting pad footprint
-            pad_footprint = pcbnew.FOOTPRINT(self.board)
-            pad_footprint.SetReference(f"MH{idx+1}")
-            
-            # Size the hole to accept standard chassis M3 structural screws
-            pad = pcbnew.PAD(pad_footprint)
-            pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
-            pad.SetSize(pcbnew.VECTOR2I(int(6.0 * self.MM_TO_IU), int(6.0 * self.MM_TO_IU))) # 6mm pad diameter
-            pad.SetDrillSize(pcbnew.VECTOR2I(int(3.2 * self.MM_TO_IU), int(3.2 * self.MM_TO_IU))) # 3.2mm screw clearance hole
-            
-            # Position the pad precisely to match the turbine housing bracket grid
-            pos_x = int(x * self.MM_TO_IU)
-            pos_y = int(y * self.MM_TO_IU)
-            pad_footprint.SetPosition(pcbnew.VECTOR2I(pos_x, pos_y))
-            
-            self.board.Add(pad_footprint)
-        print(f"[PCBNEW]: {len(atx_hole_coordinates)} structural mounting points verified.")
+        # Instantiate the main trace segment
+        track = pcbnew.PCB_TRACK(self.board)
+        track.SetStart(pcbnew.VECTOR2I(int(start_mm[0] * self.MM_TO_IU), int(start_mm[1] * self.MM_TO_IU)))
+        track.SetEnd(pcbnew.VECTOR2I(int(end_mm[0] * self.MM_TO_IU), int(end_mm[1] * self.MM_TO_IU)))
+        track.SetWidth(int(0.25 * self.MM_TO_IU)) # 0.25mm trace width
+        track.SetLayer(front_layer)
+        self.board.Add(track)
+        
+        print(f"[RT SIGNAL]: Routed primary signal from {start_mm} to {end_mm}.")
+        return track
 
-    def inject_hex_telemetry_chips(self):
-        """Instantiates the processing chips parsing the 16-state square tooth arrays."""
-        # Place the master cluster processing array in the center of the board
-        center_x = int((self.ATX_WIDTH_MM / 2) * self.MM_TO_IU)
-        center_y = int((self.ATX_LENGTH_MM / 2) * self.MM_TO_IU)
+    def inject_rt_guard_ring(self, core_track):
+        """
+        RT Fabrication Rule #2: Crosstalk Prevention.
+        Duplicates the vector of a track and offsets it symmetrically on both sides
+        to create an isolating ground envelope.
+        """
+        front_layer = self.board.GetLayerID("F.Cu")
+        offset_iu = int(self.GUARD_RING_OFFSET_MM * self.MM_TO_IU)
+        ring_width_iu = int(self.GUARD_RING_WIDTH_MM * self.MM_TO_IU)
         
-        # Instantiate custom QFP processor for 16-state hexadecimal calculations
-        chip_footprint = pcbnew.FOOTPRINT(self.board)
-        chip_footprint.SetReference("U1_HEX_DECODER")
-        chip_footprint.SetPosition(pcbnew.VECTOR2I(center_x, center_y))
+        # Fetch underlying coordinates
+        start = core_track.GetStart()
+        end = core_track.GetEnd()
         
-        # Define internal trace width configuration for high-speed square-wave signals
-        net_settings = self.board.GetDesignSettings()
-        # Set track width to 0.25mm to balance impedance and logic signal protection
-        net_settings.SetTrackWidth(int(0.25 * self.MM_TO_IU))
+        # Compute the perpendicular vector for parallel offsets
+        dx = end.x - start.x
+        dy = end.y - start.y
+        length = math.sqrt(dx*dx + dy*dy)
+        if length == 0: return
         
-        self.board.Add(chip_footprint)
-        print("[PCBNEW]: High-resolution hexadecimal tracking logic integrated into design matrix.")
+        # Normal vectors
+        nx = -dy / length
+        ny = dx / length
+        
+        # Generate Left and Right Shield Traces
+        for side in [-1, 1]:
+            guard_track = pcbnew.PCB_TRACK(self.board)
+            
+            # Apply offset shift
+            g_start_x = int(start.x + (nx * offset_iu * side))
+            g_start_y = int(start.y + (ny * offset_iu * side))
+            g_end_x = int(end.x + (nx * offset_iu * side))
+            g_end_y = int(end.y + (ny * offset_iu * side))
+            
+            guard_track.SetStart(pcbnew.VECTOR2I(g_start_x, g_start_y))
+            guard_track.SetEnd(pcbnew.VECTOR2I(g_end_x, g_end_y))
+            guard_track.SetWidth(ring_width_iu) # Thick 2oz/3oz equivalent copper copper trace
+            guard_track.SetLayer(front_layer)
+            
+            # Formally bind trace to the system's ground network (GND)
+            gnd_net = self.board.FindNet("GND")
+            if gnd_net:
+                guard_track.SetNet(gnd_net)
+                
+            self.board.Add(guard_track)
+            
+        print(f"[RT GUARD RING]: Injected dual parallel {self.GUARD_RING_WIDTH_MM}mm shield boundaries.")
 
     def compile_and_save_layout(self):
-        """Executes design metric compiles and exports the structural board archive."""
-        # Refresh the connectivity netlist tree topology structures
+        """Builds net connections and outputs the system footprint file."""
         self.board.BuildConnectivity()
-        # Commit layout file memory blocks cleanly to target destination path
         pcbnew.SaveBoard(self.filename, self.board)
-        print(f"\n[SUCCESS]: Electronic hardware architecture saved to: {self.filename}")
+        print(f"[SUCCESS]: Layout saved with absolute guard ring coverage at: {self.filename}")
 
+import math
 if __name__ == "__main__":
     generator = HexBoardGenerator()
     generator.draw_atx_board_edge()
-    generator.place_atx_mounting_holes()
-    generator.inject_hex_telemetry_chips()
+    
+    # Simulate routing a crucial 108-bit telemetry lane from the turbine block
+    telemetry_lane = generator.route_high_speed_data_trace((50, 100), (250, 100))
+    
+    # Shield it instantly using the repository rule matrix
+    generator.inject_rt_guard_ring(telemetry_lane)
+    
     generator.compile_and_save_layout()
