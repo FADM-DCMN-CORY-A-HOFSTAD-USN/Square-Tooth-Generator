@@ -49,6 +49,21 @@ else
     exit 1
 fi
 
+# Append this validation loop sequence inside tools/simulate_system.sh:
+
+echo -e "\n${YELLOW}[STAGE 5/5 Part B]: Running Anti-Vibration Layout Footprint Verification...${NC}"
+if [ -f "tools/verify_vibration_compliance.py" ]; then
+    if python3 tools/verify_vibration_compliance.py; then
+        echo -e "${GREEN}[PASSED]: Component geometries verified against mechanical harmonic failure profiles.${NC}"
+    else
+        echo -e "${RED}[ASSERTION FAILURE]: Structural vulnerability found. Halting build.${NC}"
+        exit 4
+    fi
+else
+    echo -e "${RED}[ERROR]: Anti-vibration script asset missing or disconnected.${NC}"
+    exit 1
+fi
+
 # 3. Step 2: Validate 16-State Stepped Voltage Interfacing Lanes
 echo -e "\n${YELLOW}[STAGE 2/5]: Simulating 16-State [0.0V - 1.0V] Logic Transmission Lanes...${NC}"
 if [ -f "src/hex_voltage_controller.py" ]; then
