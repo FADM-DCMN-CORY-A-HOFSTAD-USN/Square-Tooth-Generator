@@ -6,6 +6,16 @@
 
 set -euo pipefail
 
+# Append this verification gate into your tools/package_release.sh script loop:
+
+echo -e "${YELLOW}[PACKAGER]: Invoking silicon and board-space validation gate...${NC}"
+if python3 "${PROJECT_ROOT_PATH}/tools/check_todo_compliance.py"; then
+    echo -e "${GREEN}[PASSED]: Hardware checklist fully completed. Continuing build.${NC}"
+else
+    echo -e "${RED}[CRITICAL GATE BLOCK]: Factory deployment aborted due to unchecked hardware milestones.${NC}"
+    exit 3
+fi
+
 # Text formatting escape variables
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
