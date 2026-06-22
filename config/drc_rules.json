@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org",
+  "title": "Square-Tooth Generator Design Rule Constraint (DRC) Matrix",
+  "description": "Parametric layout constraints enforcing 16-state logic guard rings by application medium.",
+  "environments": {
+    "hydro": {
+      "target_environment": "Hydroelectric Hydraulic Turbines",
+      "description": "High static torque ripples require robust shielding vectors and heavy copper tracking.",
+      "guard_ring_offset_mm": 0.50,
+      "guard_ring_width_mm": 0.40,
+      "trace_width_data_mm": 0.25,
+      "recommended_copper_weight_oz": 3.0,
+      "max_allowable_crosstalk_db": -45.0,
+      "voltage_step_margin_mv": 66.66
+    },
+    "wind": {
+      "target_environment": "Aerodynamic Wind Generation Structures",
+      "description": "Optimized for lightning strike mitigation paths and high-frequency aerodynamic harmonic fields.",
+      "guard_ring_offset_mm": 0.65,
+      "guard_ring_width_mm": 0.35,
+      "trace_width_data_mm": 0.20,
+      "recommended_copper_weight_oz": 2.0,
+      "max_allowable_crosstalk_db": -40.0,
+      "voltage_step_margin_mv": 66.66
+    },
+    "combustion_fuel": {
+      "target_environment": "Reciprocating Internal Combustion Engines",
+      "description": "Maximizes suppression profiles against extreme spark plug ignition noise and high structural vibrations.",
+      "guard_ring_offset_mm": 0.40,
+      "guard_ring_width_mm": 0.50,
+      "trace_width_data_mm": 0.25,
+      "recommended_copper_weight_oz": 2.0,
+      "max_allowable_crosstalk_db": -50.0,
+      "voltage_step_margin_mv": 66.66
+    }
+  }
+}
