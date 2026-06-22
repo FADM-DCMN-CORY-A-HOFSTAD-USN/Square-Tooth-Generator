@@ -1,0 +1,55 @@
+# =========================================================================
+# SQUARE-TOOTH GENERATOR CONTINUOUS INTEGRATION MATRIX
+# Automated Docker Compilation and Unit Testing Execution Matrix
+# =========================================================================
+
+name: "CI Build & Test Pipeline"
+
+# Trigger compilation loops on standard development branch vectors
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+jobs:
+  compile-and-validate:
+    name: "Automated Build Execution"
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the source code from the repository commit layer
+      - name: "Checkout Code Repository"
+          uses: actions/checkout@v4
+
+      # 2. Set up Python for running the mathematical precision test suites
+      - name: "Set up Python Environment"
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.11"
+
+      # 3. Execute the 108-bit stacked word unit tests to verify precision boundaries
+      - name: "Run Python Unit Tests (Precision Verification)"
+          run: |
+            python -m unittest discover -s tests
+
+      # 4. Initialize Docker Buildx environment for efficient layer caching
+      - name: "Set up Docker Buildx"
+          uses: docker/setup-buildx-action@v3
+
+      # 5. Build the multi-stage compilation image to verify compiler warnings and linking
+      - name: "Build Production Firmware Image via Docker"
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            file: ./Dockerfile
+            push: false # Keeps output local to the runner architecture
+            load: true  # Loads the built payload image back to local runner engine
+            tags: square_tooth_firmware:test
+            cache-from: type=gha # Leverages native GitHub Actions layer caching
+            cache-to: type=gha,mode=max
+
+      # 6. Execute the production container payload locally to ensure zero segmentation faults
+      - name: "Verify Firmware Container Binary Execution"
+          run: |
+            docker run --rm square_tooth_firmware:test
