@@ -146,6 +146,20 @@ else
     echo -e "${YELLOW}[SKIPPED]: Configuration matrices or output paths missing. Verification pass skipped.${NC}"
 fi
 
+# Append this validation pass to the end of Stage 5 in tools/simulate_system.sh:
+
+echo -e "\n${YELLOW}[STAGE 5/5 Part C]: Running Procurement BOM Material Integrity Audit...${NC}"
+if [ -f "tools/verify_bom_materials.py" ]; then
+    if python3 tools/verify_bom_materials.py; then
+        echo -e "${GREEN}[PASSED]: Component Bill of Materials verified for raw structural reliability.${NC}"
+    else
+        echo -e "${RED}[ASSERTION FAILURE]: Prohibited material grade found in purchasing files. Halting deployment.${NC}"
+        exit 5
+    fi
+else
+    echo -e "${YELLOW}[SKIPPED]: Material validator tool not detected. Verify file path structures.${NC}"
+fi
+
 echo -e "\n${BLUE}=========================================================================${NC}"
 echo -e "${GREEN}[COMPLETED]: Full Simulation Engine Loop Finalized. Hardware Certified for Factory Build.${NC}"
 echo -e "${BLUE}=========================================================================${NC}"
