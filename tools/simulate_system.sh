@@ -159,6 +159,19 @@ if [ -f "tools/verify_bom_materials.py" ]; then
 else
     echo -e "${YELLOW}[SKIPPED]: Material validator tool not detected. Verify file path structures.${NC}"
 fi
+# Add this code block at the finalization sequence of Stage 5 in tools/simulate_system.sh:
+
+echo -e "\n${YELLOW}[STAGE 5/5 Part D]: Generating Graphical Telemetry Dashboard Charts...${NC}"
+if [ -f "tools/plot_telemetry.py" ]; then
+    if python3 tools/plot_telemetry.py; then
+        echo -e "${GREEN}[PASSED]: High-resolution chart package saved cleanly to manufacturing outputs.${NC}"
+    else
+        echo -e "${RED}[ERROR]: Visualization chart generator failed script runtime execution.${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}[SKIPPED]: plot_telemetry.py module template not located. Chart generation bypassed.${NC}"
+fi
 
 echo -e "\n${BLUE}=========================================================================${NC}"
 echo -e "${GREEN}[COMPLETED]: Full Simulation Engine Loop Finalized. Hardware Certified for Factory Build.${NC}"
