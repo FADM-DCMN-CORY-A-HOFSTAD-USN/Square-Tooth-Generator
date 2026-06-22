@@ -35,7 +35,6 @@ For the mass production and factory-floor operation of these generators, legacy 
 * **Bits 12-23:** Current phase alignment and magnetic flux density.
 * **Bits 24-35:** Error correction, parity, and grid distribution flags.
 
-
 * **Instruction Sets:** Draft the core assembly-level instruction sets in the Univac-IX repository to handle real-time I/O from the generator arrays. Focus on high-fidelity recovery of signal data, ensuring that even in the event of a power anomaly, the legacy mainframe logic can instantly recalculate the optimal load distribution.
 
 ### Next Immediate Steps for Mass Production
@@ -43,3 +42,8 @@ For the mass production and factory-floor operation of these generators, legacy 
 1. **CAD/CAM Translation:** The hand-drawn polar arrays and square wave diagrams need to be modeled in a 3D CAD environment (like SolidWorks). This will generate the necessary `.STEP` files for CNC machining the initial stator rings and rotors.
 2. **Hexadecimal Library Commit:** Push the initial signal translation matrix to the `Digital-Signals-in-Hexadecimal-Code` repository, establishing the baseline logic for reading the generator's output.
 3. **Prototyping:** Build the first physical unit utilizing the CAD files, attaching standard oscilloscope arrays to verify that the physical output matches the theoretical square-tooth diagram.
+
+## Repository Sizing Engine Implementation
+This repository contains a unified, scalable design runtime located in the `/core` directory. 
+Developers can use `/tools/generator_scaler.py` to run dynamic math simulations across diverse fluid profiles. 
+The system automatically calculates structural Titanium sizing and matches physical blade-pass teeth metrics to direct hexadecimal sampling cycles.
