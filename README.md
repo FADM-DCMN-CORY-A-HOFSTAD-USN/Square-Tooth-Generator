@@ -55,7 +55,7 @@ The system automatically calculates structural Titanium sizing and matches physi
 
 ---
 
-## 1. Executive Project Overview
+### 4. Executive Project Overview
 
 The Square-Tooth Generator platform is an environment-agnostic, dynamically scalable power generation framework. It bridges the historical gap between physical fluid/thermal energy capture and direct digital telemetry. 
 
@@ -63,7 +63,7 @@ By utilizing a multi-pole variable-reluctance topography with **Square Teeth**, 
 
 ---
 
-## 2. Integrated Documentation Portfolio
+### 5. Integrated Documentation Portfolio
 
 For thorough architectural reference, verification onboarding, or manual execution instructions, consult the dedicated manuals housed within the `/docs` path matrix:
 
@@ -78,7 +78,7 @@ For thorough architectural reference, verification onboarding, or manual executi
 
 ---
 
-## 3. Structural Repository Geometry Map
+### 6. Structural Repository Geometry Map
 
 ```text
 Square-Tooth-Generator/
@@ -121,7 +121,7 @@ Square-Tooth-Generator/
 
 ---
 
-## 4. Accelerated Workspace Quick Start Sequence
+### 4. Accelerated Workspace Quick Start Sequence
 
 To instantly initialize your local developer workstation, download dependencies, run mathematical precision tests, and execute the full hardware simulation pipeline, run the following commands:
 
@@ -138,7 +138,7 @@ chmod +x tools/simulate_system.sh && ./tools/simulate_system.sh
 
 ---
 
-## 5. Engineering Principles & Compliance
+### 5. Engineering Principles & Compliance
 
 The codebase uses automated checks to ensure all hardware changes match the project rules before fabrication:
 *   **Zero Arithmetic Truncation Drift:** Verified by running unit tests (`python3 -m unittest discover -s tests`) to confirm the 108-bit stacked registers maintain up to 27 decimal places of fixed accuracy.
