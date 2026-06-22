@@ -1,5 +1,55 @@
 import math
 
+class UnivacIXSerializer:
+    """
+    Formats the Square-Tooth Generator telemetry for Univac-IX Mainframe ingestion.
+    Outputs legacy 72-character wide Fieldata lines to bridge the advanced 
+    Hexadecimal analog logic with legacy military monitoring systems.
+    """
+    def __init__(self, location_id="HYDRO-STATION-ALPHA"):
+        self.location_id = location_id
+
+    def serialize_telemetry(self, current_rpm, hex_hz, hex_voltage, hex_state, temp_c, gap_mm):
+        """
+        Prints the hardware state to standard output mimicking a Univac line-printer,
+        and returns the data array for local storage.
+        """
+        print("\n************************************************************************")
+        print("U N I V A C - I X   S Q U A R E - T O O T H   T E L E M E T R Y")
+        print("************************************************************************")
+        print(f"STATION ID:          {self.location_id}")
+        print(f"ROTOR SPEED:         {current_rpm:.1f} RPM")
+        print(f"HEX FREQUENCY:       {hex_hz:.2f} HZ")
+        print(f"LOGIC OUTPUT:        HEX {hex_state} ({hex_voltage:.4f}V)")
+        print(f"BEARING TEMP:        {temp_c:.1f}C")
+        print(f"CAVITATION GAP:      {gap_mm:.3f} MM")
+        print("STATUS:              SYNCED TO RT HEX MOTHERBOARD.")
+        print("************************************************************************\n")
+        
+        # Return a Univac-compatible sequential data array
+        return [hex_state, f"{hex_voltage:.4f}", f"{temp_c:.1f}", f"{gap_mm:.3f}"]
+
+# ==========================================
+# Integration Testing Example
+# ==========================================
+if __name__ == "__main__":
+    from telemetry_bridge import HexTelemetryBridge
+    
+    # Initialize a 64-tooth generator (optimized for slow, high-torque hydro)
+    bridge = HexTelemetryBridge(z_teeth=64, max_rpm=1500)
+    serializer = UnivacIXSerializer(location_id="DAM-TURBINE-01")
+    
+    # Simulate the turbine spinning at 750 RPM
+    simulated_rpm = 750.0
+    f_hex, voltage, state = bridge.process_rotor_pulse(simulated_rpm)
+    
+    # Simulate ACC Gap tracking
+    simulated_temp = 38.5
+    simulated_gap = 0.52 # Slightly above the 0.50mm target
+    
+    # Push to Univac Console
+    serializer.serialize_telemetry(simulated_rpm, f_hex, voltage, state, simulated_temp, simulated_gap)
+
 class UnivacStackedSerializer:
     def __init__(self):
         # 108 bits total: 1 Sign, 17 Exponent, 90 Mantissa

@@ -49,6 +49,21 @@ else
     exit 1
 fi
 
+# Append this validation loop sequence inside tools/simulate_system.sh:
+
+echo -e "\n${YELLOW}[STAGE 5/5 Part B]: Running Anti-Vibration Layout Footprint Verification...${NC}"
+if [ -f "tools/verify_vibration_compliance.py" ]; then
+    if python3 tools/verify_vibration_compliance.py; then
+        echo -e "${GREEN}[PASSED]: Component geometries verified against mechanical harmonic failure profiles.${NC}"
+    else
+        echo -e "${RED}[ASSERTION FAILURE]: Structural vulnerability found. Halting build.${NC}"
+        exit 4
+    fi
+else
+    echo -e "${RED}[ERROR]: Anti-vibration script asset missing or disconnected.${NC}"
+    exit 1
+fi
+
 # 3. Step 2: Validate 16-State Stepped Voltage Interfacing Lanes
 echo -e "\n${YELLOW}[STAGE 2/5]: Simulating 16-State [0.0V - 1.0V] Logic Transmission Lanes...${NC}"
 if [ -f "src/hex_voltage_controller.py" ]; then
@@ -129,6 +144,20 @@ if [ -f "config/drc_rules.json" ] && [ -d "${KICAD_FABRICATION_DIRECTORY}" ]; th
     fi
 else
     echo -e "${YELLOW}[SKIPPED]: Configuration matrices or output paths missing. Verification pass skipped.${NC}"
+fi
+
+# Append this validation pass to the end of Stage 5 in tools/simulate_system.sh:
+
+echo -e "\n${YELLOW}[STAGE 5/5 Part C]: Running Procurement BOM Material Integrity Audit...${NC}"
+if [ -f "tools/verify_bom_materials.py" ]; then
+    if python3 tools/verify_bom_materials.py; then
+        echo -e "${GREEN}[PASSED]: Component Bill of Materials verified for raw structural reliability.${NC}"
+    else
+        echo -e "${RED}[ASSERTION FAILURE]: Prohibited material grade found in purchasing files. Halting deployment.${NC}"
+        exit 5
+    fi
+else
+    echo -e "${YELLOW}[SKIPPED]: Material validator tool not detected. Verify file path structures.${NC}"
 fi
 
 echo -e "\n${BLUE}=========================================================================${NC}"
