@@ -121,7 +121,7 @@ Square-Tooth-Generator/
 
 ---
 
-### 4. Accelerated Workspace Quick Start Sequence
+### 7. Accelerated Workspace Quick Start Sequence
 
 To instantly initialize your local developer workstation, download dependencies, run mathematical precision tests, and execute the full hardware simulation pipeline, run the following commands:
 
@@ -138,7 +138,7 @@ chmod +x tools/simulate_system.sh && ./tools/simulate_system.sh
 
 ---
 
-### 5. Engineering Principles & Compliance
+### 8. Engineering Principles & Compliance
 
 The codebase uses automated checks to ensure all hardware changes match the project rules before fabrication:
 *   **Zero Arithmetic Truncation Drift:** Verified by running unit tests (`python3 -m unittest discover -s tests`) to confirm the 108-bit stacked registers maintain up to 27 decimal places of fixed accuracy.
