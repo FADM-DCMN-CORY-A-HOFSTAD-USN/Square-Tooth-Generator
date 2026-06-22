@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# =========================================================================
+# SQUARE-TOOTH GENERATOR HARDWARE DEPLOYMENT INFRASTRUCTURE
+# Automated Local Git Post-Commit Hook Quality Enforcement Gate
+# Intercepts local saves to run full physics and verification toolchains.
+# =========================================================================
+
+# Prevent intermediate errors or missing variables from executing partially
+set -euo pipefail
+
+# Text formatting escape variables
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0;37m'
+
+echo -e "\n${BLUE}=========================================================================${NC}"
+echo -e "${BLUE}     GIT POST-COMMIT GATE: INITIATING REPOSITORY INTEGRITY AUDIT        ${NC}"
+echo -e "${BLUE}=========================================================================${NC}"
+
+# 1. Locate and extract the project root path context bounds
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "${SCRIPT_DIR}/../.env" ]; then
+    PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+elif [ -f "${SCRIPT_DIR}/.env" ]; then
+    PROJECT_ROOT="${SCRIPT_DIR}"
+else
+    # Fallback lookup if running deep inside the hidden .git directory structures
+    PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+fi
+
+cd "${PROJECT_ROOT}"
+
+# 2. Source active project environmental variable pathway maps
+if [ -f ".env" ]; then
+    source .env
+else
+    echo -e "${RED}[CRITICAL GATE FAULT]: Repository .env file not initialized.${NC}"
+    echo -e "Please execute './setup.sh' to establish system environment paths."
+    exit 1
+fi
+
+# 3. Fire the entire core simulation validation engine matrix
+echo -e "${YELLOW}[HOOK]: Handing build focus over to master hardware orchestration tool...${NC}\n"
+
+if [ -f "tools/simulate_system.sh" ]; then
+    # Redirect output streams to keep standard git commit windows clean,
+    # but print failure logs explicitly if an assertion drops out.
+    if ./tools/simulate_system.sh > outputs/last_commit_validation.log 2>&1; then
+        echo -e "${GREEN}[PASSED]: Local commit verified against all RT architecture rules.${NC}"
+        echo -e "  -> Telemetry precision, 66.66mV traces, and ATX board geometries clear."
+        echo -e "${BLUE}=========================================================================${NC}\n"
+        exit 0
+    else
+        echo -e "${RED}[CRITICAL COMPLIANCE REFUSAL]: Recent commit broke architecture rules!${NC}"
+        echo -e "Review compilation logs immediately at: ${YELLOW}outputs/last_commit_validation.log${NC}"
+        echo -e "\n${RED}[REASON]: You have committed an unvalidated modification (e.g., failed test,"
+        echo -e "unshielded data trace, or prohibited component material specification).${NC}"
+        echo -e "Fix the structural errors before pushing this branch to remote networks."
+        echo -e "${BLUE}=========================================================================${NC}\n"
+        
+        # Throw an advisory warning. Note: Git post-commit hooks run *after* the commit metadata
+        # is written locally, so this exit code alerts the user to fix their work before 'git push'.
+        exit 1
+    fi
+else
+    echo -e "${RED}[ERROR]: Orchestration matrix tool (tools/simulate_system.sh) missing.${NC}"
+    exit 1
+fi

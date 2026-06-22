@@ -103,4 +103,13 @@ If a hardware node fails or reports bit corruption due to environment fatigue ou
                          |
                          v
  [REBOOT SYSTEM] -> Throw breaker, run ./sys_init, and verify green TCU LED indicator.
+
+## 6. Emergency Storm Operations & Emergency Overrides
+
+When an extreme weather profile or generator overspeed alert trips the telemetry sensors, the system locks out standard power-generation modes and executes the following recovery steps:
+
+1. **Hydro Flash Floods:** Do NOT close input isolation gates instantly. Ensure the TCU loops trigger `EMERGENCY_VENT_OPEN_GAP_FLAPS` to bypass water around the turbine blades. This vents kinetic pressure and prevents water hammer shockwaves from breaking the casing.
+2. **High-Wind Gales:** If wind spends more than 3 seconds above 25 m/s, the controller forces pitch actuators to match the zero-lift feathering boundary. If the calculated axle bending stress spikes past 400 MPa, structural chassis bypass flaps must be manually or programmatically dropped to protect the titanium integrity.
+3. **Engine Runaway:** If the square-tooth generator tracking frequency indicates an RPM surge above emergency tolerances, execution loops cut fuel line solenoids instantly and apply full reverse electromagnetic braking across the stator poles.
+
 ```
